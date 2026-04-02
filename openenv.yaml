@@ -1,0 +1,14 @@
+spec_version: 1
+name: support_ticket_triage_env
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
+description: Real-world customer support triage environment for RL agents.
+metadata:
+  category: customer_support
+  tags:
+    - openenv
+    - customer-support
+    - triage
+    - reinforcement-learning
