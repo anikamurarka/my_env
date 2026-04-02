@@ -10,7 +10,7 @@ except Exception as e:  # pragma: no cover
 try:
     from ..models import MyAction, MyObservation
     from .my_env_environment import MyEnvironment
-except ModuleNotFoundError:  # pragma: no cover
+except ImportError:  # pragma: no cover
     from models import MyAction, MyObservation
     from server.my_env_environment import MyEnvironment
 
