@@ -29,16 +29,17 @@ def log_start(task: str, env: str, model: str) -> None:
 
 
 def log_step(step: int, action: str, reward: float, done: bool, error: str | None) -> None:
-    error_text = "null" if error is None else json.dumps(error)
+    error_text = "null" if error is None else error
     print(
-        f"[STEP] step={step} action={json.dumps(action)} reward={reward:.4f} done={str(done).lower()} error={error_text}",
+        f"[STEP] step={step} action={action} reward={reward:.2f} done={str(done).lower()} error={error_text}",
         flush=True,
     )
 
 
 def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
+    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(
-        f"[END] success={str(success).lower()} steps={steps} score={score:.4f} rewards={json.dumps([round(r, 4) for r in rewards])}",
+        f"[END] success={str(success).lower()} steps={steps} score={score:.2f} rewards={rewards_str}",
         flush=True,
     )
 
@@ -138,7 +139,7 @@ async def main() -> None:
             score = await run_task(client, env, task)
             all_scores.append(score)
         avg = sum(all_scores) / len(all_scores)
-        print(f"[END] success=true steps={len(TASK_SEQUENCE)} score={avg:.4f} rewards={json.dumps([round(s, 4) for s in all_scores])}", flush=True)
+        print(f"[DEBUG] avg_score={avg:.2f} tasks={len(TASK_SEQUENCE)}", flush=True)
     finally:
         try:
             await env.close()
