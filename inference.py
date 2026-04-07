@@ -124,7 +124,8 @@ async def run_task(client: OpenAI, env: MyEnv, task_name: str) -> float:
         if result.done:
             break
 
-    score = round(max(min(sum(rewards), 1.0), 0.0), 4)
+    _EPS = 1e-4
+    score = round(max(min(sum(rewards), 1.0 - _EPS), _EPS), 4)
     success = score >= 0.6
     log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
     return score
