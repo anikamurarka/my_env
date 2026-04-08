@@ -1,27 +1,26 @@
 spec_version: "1"
-name: "support_ticket_triage_env"
+name: "maternal_health_triage_env"
 type: "space"
 runtime: "fastapi"
 app: "server.app:app"
 port: 8000
-description: "Real-world customer support triage environment for RL agents."
-
+description: "Frontline public-health triage and escalation environment for maternal/newborn care."
 
 tasks:
-  - id: "easy_billing_refund"
+  - id: "easy_obvious_emergency"
     difficulty: "easy"
-    description: "Route a duplicate-charge complaint to billing and resolve."
-  - id: "medium_account_lockout"
+    description: "Triage a patient with an obvious emergency requirement (hemorrhage)."
+  - id: "medium_ambiguous_symptoms"
     difficulty: "medium"
-    description: "Handle an enterprise login outage via account security."
-  - id: "hard_multi_issue_vip"
+    description: "Triage a patient with ambiguous symptoms needing follow-up (preeclampsia risk)."
+  - id: "hard_noisy_comorbid"
     difficulty: "hard"
-    description: "Triage a complex VIP ticket with multiple technical and billing issues."
+    description: "Triage a patient with poor cell connection and vague symptoms about their newborn."
 
 metadata:
-  category: "customer_support"
+  category: "healthcare"
   tags:
     - "openenv"
-    - "customer-support"
+    - "healthcare"
     - "triage"
     - "reinforcement-learning"
