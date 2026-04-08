@@ -1,24 +1,25 @@
 ---
-title: Support Ticket Triage Environment
-emoji: 🎫
+title: Maternal Health Triage Environment
+emoji: 🏥
 colorFrom: blue
-colorTo: indigo
+colorTo: green
 sdk: docker
 pinned: false
 app_port: 8000
 base_path: /web
 tags:
   - openenv
-  - customer-support
+  - healthcare
+  - triage
 ---
 
-# Support Ticket Triage Environment
+# Maternal and Newborn Risk Triage Environment
 
-A real-world OpenEnv environment where an agent triages customer support tickets by setting priority, routing to the correct team, writing a response, and deciding when to resolve the ticket.
+A real-world OpenEnv environment representing a frontline public-health triage tool. An agent must sequentially triage maternal and newborn cases under a fixed question budget, extracting vital symptom information, and then deciding whether to reassure, schedule a follow-up, refer to a nearest facility, or escalate for emergencies.
 
 ## Why this environment is useful
 
-Support operations teams repeatedly solve this workflow in production systems. Good agents need to balance urgency, routing accuracy, customer communication quality, and safe resolution. This makes the environment practical for evaluating agent reliability rather than game-playing.
+Healthcare-agent benchmarks are often limited to static medical QA. This environment implements a realistic constraint: limited question budget, noisy data, and potentially catastrophic penalties for unsafe reassurance. The focus is strictly on **safe escalation policy and structured documentation**, mimicking actual frontline health worker workflows (such as ASHA/ANM workers).
 
 ## Environment API
 
@@ -38,43 +39,43 @@ Additional helper endpoints:
 
 `MyAction`
 
-- `priority`: `low | medium | high | urgent`
-- `team`: `billing | technical_support | account_security | logistics`
-- `response`: short free-text reply to the customer
-- `resolve`: whether the agent wants to close the ticket
+- `decision`: `reassure | schedule_follow_up | refer_facility | urgent_escalation | emergency_escalation`
+- `question`: single follow-up question to ask the user (max 5 questions per case)
+- `summary`: structured clinical handoff free-text note
+- `resolve`: whether the agent is making their final decision
 
 ## Observation space
 
 `MyObservation`
 
 - task metadata: `task_id`, `difficulty`, `objective`
-- ticket details: `ticket_id`, `customer_tier`, `subject`, `body`
-- current working state: `current_priority`, `current_team`, `response_sent`
+- patient details: `case_id`, `patient_description`
+- interactions: `dialogue_history` (shows questions asked by the agent and answers obtained)
+- constraints: `questions_remaining`
 - feedback: `last_feedback`
-- metadata includes current normalized score and per-component breakdown
 
 ## Tasks
 
-### 1. easy_billing_refund
-Route a duplicate-charge complaint to billing, mark it high priority, send an apologetic refund-oriented reply, and resolve.
+### 1. easy_obvious_emergency
+A 38-week pregnant patient complaining of heavy bleeding. Must be identified as life-threatening and immediately escalated without reassurance.
 
-### 2. medium_account_lockout
-Handle an enterprise login outage before a board meeting. The correct route is account security, with urgent priority and a reply focused on restoring access.
+### 2. medium_ambiguous_symptoms
+A postpartum patient with swollen feet. The agent must use the question budget to check for headaches or vision changes to assess preeclampsia risk before escalating.
 
-### 3. hard_multi_issue_vip
-A VIP customer reports SSO login failures, duplicate invoices, and dashboard issues. The agent must prioritize correctly, pick the most safety-critical team, acknowledge multiple issues, and resolve only after taking the right steps.
+### 3. hard_noisy_comorbid
+A vaguely described newborn case with lethargy. Eliciting specific details like chest indrawing/fast breathing confirms the severity before referral.
 
 ## Reward design
 
 The reward is dense and deterministic:
 
-- partial credit for choosing a reasonable priority and team
-- higher credit for exact matches
-- response reward based on keyword coverage of required customer-facing concepts
-- resolution reward only after enough progress has been made
-- penalties for empty or invalid actions
+- Eliciting relevant missing information yields positive rewards
+- Correct policy decision (identifying the correct escalation path) grants the largest reward
+- Unsafe `reassure` actions on emergency cases receive severe negative penalties (-0.50 score hit)
+- The structured summary text is evaluated for correct clinical keywords
+- Wasting the budget on irrelevant questions damages the efficiency score
 
-The final task score is always clamped to `0.0–1.0`.
+The final task score is clamped to `0.0–1.0`.
 
 ## Baseline inference
 
@@ -117,7 +118,4 @@ python inference.py
 
 ## Expected baseline behavior
 
-The provided baseline should finish in well under 20 minutes on a 2 vCPU / 8 GB machine because each task uses a tiny number of steps and lightweight JSON parsing.
-
-
-**Baseline Score**: The baseline inference script achieves an average score of **0.72** across all 3 tasks (using the default `Qwen/Qwen2.5-72B-Instruct` model).
+The current baseline averages `0.57` using `Qwen2.5-72B-Instruct`, demonstrating that the sequential questioning loop is non-trivial compared to single-shot JSON completion.
