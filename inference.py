@@ -16,11 +16,11 @@ IMAGE_NAME = os.getenv("IMAGE_NAME", "my_env-env:latest")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 API_KEY = os.getenv("HF_TOKEN", "")
-MAX_STEPS = 4
+MAX_STEPS = 5
 TASK_SEQUENCE = [
-    "easy_billing_refund",
-    "medium_account_lockout",
-    "hard_multi_issue_vip",
+    "easy_obvious_emergency",
+    "medium_ambiguous_symptoms",
+    "hard_noisy_comorbid",
 ]
 
 
@@ -45,40 +45,40 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> No
 
 
 def heuristic_action(task_id: str) -> Dict:
-    if task_id == "easy_billing_refund":
+    if task_id == "easy_obvious_emergency":
         return {
-            "priority": "high",
-            "team": "billing",
-            "response": "Sorry about the duplicate charge. I am routing this to billing and will help process the refund.",
+            "decision": "emergency_escalation",
+            "question": None,
+            "summary": "38 weeks pregnant with heavy bleeding. Emergency escalation required.",
             "resolve": True,
         }
-    if task_id == "medium_account_lockout":
+    if task_id == "medium_ambiguous_symptoms":
         return {
-            "priority": "urgent",
-            "team": "account_security",
-            "response": "This is urgent. We will verify the account and restore access immediately so your team can log in.",
+            "decision": "urgent_escalation",
+            "question": "Do you have a severe headache or vision changes?",
+            "summary": "Postpartum swelling with possible preeclampsia symptoms. Urgent escalation.",
             "resolve": True,
         }
     return {
-        "priority": "urgent",
-        "team": "account_security",
-        "response": "Sorry for the disruption. We are escalating the access issue, tracking the billing problem, and checking the dashboard before your review.",
+        "decision": "emergency_escalation",
+        "question": "Is the baby breathing fast?",
+        "summary": "Newborn lethargic and not feeding. Emergency escalation.",
         "resolve": True,
     }
 
 
-def get_model_action(client: OpenAI, task_id: str, subject: str, body: str, objective: str) -> Dict:
+def get_model_action(client: OpenAI, task_id: str, case_id: str, patient_description: str, objective: str) -> Dict:
     prompt = (
-        "Return only JSON with keys priority, team, response, resolve. "
-        "Choose from priority=[low, medium, high, urgent] and "
-        "team=[billing, technical_support, account_security, logistics]. "
-        f"Task: {task_id}. Objective: {objective}. Subject: {subject}. Body: {body}"
+        "Return only JSON with keys decision, question, summary, resolve. "
+        "Choose decision from [reassure, schedule_follow_up, refer_facility, urgent_escalation, emergency_escalation]. "
+        f"Task: {task_id}. Objective: {objective}. Case ID: {case_id}. Description: {patient_description} "
+        "Either ask a question and set resolve=False, or make a decision with a summary and set resolve=True."
     )
     try:
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a careful support triage agent. Output valid JSON only."},
+                {"role": "system", "content": "You are a frontline public-health triage agent. Output valid JSON only."},
                 {"role": "user", "content": prompt},
             ],
             temperature=0,
@@ -89,9 +89,9 @@ def get_model_action(client: OpenAI, task_id: str, subject: str, body: str, obje
         end = content.rfind("}")
         parsed = json.loads(content[start : end + 1])
         return {
-            "priority": parsed.get("priority"),
-            "team": parsed.get("team"),
-            "response": parsed.get("response"),
+            "decision": parsed.get("decision"),
+            "question": parsed.get("question"),
+            "summary": parsed.get("summary"),
             "resolve": bool(parsed.get("resolve", True)),
         }
     except Exception as exc:
@@ -105,7 +105,7 @@ async def run_task(client: OpenAI, env: MyEnv, task_name: str) -> float:
     success = False
     score = 0.0
 
-    log_start(task=task_name, env="support_ticket_triage_env", model=MODEL_NAME)
+    log_start(task=task_name, env="maternal_health_triage_env", model=MODEL_NAME)
 
     result = await env.reset()
     obs = result.observation
@@ -113,7 +113,7 @@ async def run_task(client: OpenAI, env: MyEnv, task_name: str) -> float:
     for step in range(1, MAX_STEPS + 1):
         if result.done:
             break
-        action_dict = get_model_action(client, obs.task_id, obs.subject, obs.body, obs.objective)
+        action_dict = get_model_action(client, obs.task_id, obs.case_id, obs.patient_description, obs.objective)
         action = MyAction(**action_dict)
         result = await env.step(action)
         obs = result.observation
