@@ -1,14 +1,27 @@
-spec_version: 1
-name: support_ticket_triage_env
-type: space
-runtime: fastapi
-app: server.app:app
+spec_version: "1"
+name: "support_ticket_triage_env"
+type: "space"
+runtime: "fastapi"
+app: "server.app:app"
 port: 8000
-description: Real-world customer support triage environment for RL agents.
+description: "Real-world customer support triage environment for RL agents."
+
+
+tasks:
+  - id: "easy_billing_refund"
+    difficulty: "easy"
+    description: "Route a duplicate-charge complaint to billing and resolve."
+  - id: "medium_account_lockout"
+    difficulty: "medium"
+    description: "Handle an enterprise login outage via account security."
+  - id: "hard_multi_issue_vip"
+    difficulty: "hard"
+    description: "Triage a complex VIP ticket with multiple technical and billing issues."
+
 metadata:
-  category: customer_support
+  category: "customer_support"
   tags:
-    - openenv
-    - customer-support
-    - triage
-    - reinforcement-learning
+    - "openenv"
+    - "customer-support"
+    - "triage"
+    - "reinforcement-learning"
