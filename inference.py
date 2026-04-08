@@ -128,7 +128,7 @@ async def run_task(client: OpenAI, env: MyEnv, task_name: str) -> float:
     # The actual final score must come from the environment's grinder (metadata.score)
     # in the very last observation, rather than summing deltas naively.
     env_score = float(obs.metadata.get("score", 0.0))
-    score = round(max(min(env_score, 1.0 - _EPS), _EPS), 4)
+    score = round(max(min(env_score, 1.0 - _EPS), _EPS), 2)
     success = score >= 0.6
     log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
     return score
