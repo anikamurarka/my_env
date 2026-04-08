@@ -14,23 +14,23 @@ class MyReward(BaseModel):
 
 
 class MyAction(Action):
-    """Agent action for support-ticket triage."""
+    """Agent action for maternal/newborn health triage."""
 
-    priority: Optional[str] = Field(
+    decision: Optional[str] = Field(
         default=None,
-        description="One of: low, medium, high, urgent",
+        description="One of: reassure, schedule_follow_up, refer_facility, urgent_escalation, emergency_escalation",
     )
-    team: Optional[str] = Field(
+    question: Optional[str] = Field(
         default=None,
-        description="One of: billing, technical_support, account_security, logistics",
+        description="A follow-up question to ask the patient or caregiver",
     )
-    response: Optional[str] = Field(
+    summary: Optional[str] = Field(
         default=None,
-        description="A short customer reply draft",
+        description="A structured handoff note summarizing the situation",
     )
     resolve: bool = Field(
         default=False,
-        description="Set true when you believe the ticket is fully handled",
+        description="Set true when you believe the triage is fully handled and final decision is made",
     )
 
 
@@ -40,12 +40,9 @@ class MyObservation(Observation):
     task_id: str = Field(..., description="Current task identifier")
     difficulty: str = Field(..., description="Task difficulty")
     objective: str = Field(..., description="What the agent must accomplish")
-    ticket_id: str = Field(..., description="Support ticket identifier")
-    customer_tier: str = Field(..., description="free, pro, or enterprise")
-    subject: str = Field(..., description="Ticket subject")
-    body: str = Field(..., description="Ticket body")
-    allowed_teams: List[str] = Field(default_factory=list)
-    current_priority: Optional[str] = None
-    current_team: Optional[str] = None
-    response_sent: bool = False
+    case_id: str = Field(..., description="Patient case identifier")
+    patient_description: str = Field(..., description="Initial patient description or complaint")
+    dialogue_history: List[str] = Field(default_factory=list, description="History of Q&A with the patient/caregiver")
+    allowed_decisions: List[str] = Field(default_factory=list)
+    questions_remaining: int = 5
     last_feedback: str = ""
