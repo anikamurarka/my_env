@@ -139,13 +139,13 @@ class MyEnvironment(Environment):
 
         response_text = self._episode["response"].strip()
         if response_text:
-            breakdown["response"] = round(0.25 * self._keyword_score(response_text, answer["keywords"]), 4)
+            breakdown["response"] = round(0.25 * self._keyword_score(response_text, answer["keywords"]), 2)
 
         if self._episode["resolved"]:
             pre_resolve = breakdown["priority"] + breakdown["team"] + breakdown["response"]
             breakdown["resolution"] = 0.25 if pre_resolve >= 0.55 else 0.05
 
-        total = round(sum(breakdown.values()), 4)
+        total = round(sum(breakdown.values()), 2)
         return {"total": total, "breakdown": breakdown}
 
     def _observation(self, feedback: str, reward: float, done: bool) -> MyObservation:
@@ -194,7 +194,7 @@ class MyEnvironment(Environment):
         prev_score = self._episode["score"]
         score = self._current_score()
         total = score["total"]
-        delta = round(total - prev_score, 4)
+        delta = round(total - prev_score, 2)
         self._episode["score"] = total
         self._episode["breakdown"] = score["breakdown"]
         self._episode["history"].append({"step": self._state.step_count, "action": action.model_dump(), "score": total})
@@ -212,7 +212,7 @@ class MyEnvironment(Environment):
             delta -= 0.03
             notes.append("empty_action")
 
-        delta = round(max(min(delta, 1.0), -1.0), 4)
+        delta = round(max(min(delta, 1.0), -1.0), 2)
         done = bool(self._episode["resolved"] or self._state.step_count >= MAX_STEPS)
 
         if done and not self._episode["resolved"]:
