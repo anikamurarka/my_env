@@ -7,7 +7,7 @@ from openenv.core.env_server.types import State
 try:
     from .models import MyAction, MyObservation
 except ImportError:
-    from models import MyAction, MyObservation
+    from models import MyAction, MyObservation  # flat /tmp/workspace/ layout
 
 
 class MyEnv(EnvClient[MyAction, MyObservation, State]):
@@ -33,7 +33,7 @@ class MyEnv(EnvClient[MyAction, MyObservation, State]):
             last_feedback=obs_data.get("last_feedback", ""),
             done=payload.get("done", False),
             reward=payload.get("reward"),
-            metadata=obs_data.get("metadata", {}),
+            metadata=obs_data.get("metadata") or payload.get("metadata") or payload.get("info") or {},
         )
         return StepResult(
             observation=observation,
