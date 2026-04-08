@@ -14,7 +14,7 @@ except ModuleNotFoundError:
 
 IMAGE_NAME = os.getenv("IMAGE_NAME", "my_env-env:latest")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "openai/gpt-oss-20b")
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 API_KEY = os.getenv("HF_TOKEN", "")
 MAX_STEPS = 4
 TASK_SEQUENCE = [
